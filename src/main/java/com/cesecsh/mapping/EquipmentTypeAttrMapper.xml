@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.cesecsh.service.EquipmentTypeAttrService" >
+
+  <resultMap id="equipmentTypeAttrResultMap" type="com.cesecsh.model.EquipmentTypeAttr" >
+    <id column="equipment_type_id" property="equipmentTypeId" jdbcType="VARCHAR" />
+    <result column="port_id" property="portId" jdbcType="VARCHAR" />
+    <result column="port_name" property="portName" jdbcType="VARCHAR" />
+    <result column="port_code" property="portCode" jdbcType="VARCHAR" />
+    <result column="focus1" property="focus1" jdbcType="VARCHAR" />
+    <result column="focus2" property="focus2" jdbcType="VARCHAR" />
+    <result column="focus3" property="focus3" jdbcType="VARCHAR" />
+  </resultMap>
+ 
+  <sql id="columns" >
+    equipment_type_id, port_id, port_name,port_code,focus1,focus2,focus3
+  </sql>
+   <sql id="table" >
+  		cec_equipment_type_attr
+   </sql>
+
+   <select id="select" resultMap="equipmentTypeAttrResultMap">
+	  	select 
+	 		 <include refid="columns"></include>
+	 	 from  <include refid="table"></include>
+	 	 <where>
+	 	 	<if test="equipmentTypeId!=null">
+	 	 		equipment_type_id = #{equipmentTypeId} 
+	 	 	</if>
+	 	 	<if test="portId!=null">
+	 	 		and port_id = #{portId} 
+	 	 	</if>
+	 	 
+	 	 </where> 
+	 	  order by port_id desc
+  </select>
+  
+  <select id="selects" resultMap="equipmentTypeAttrResultMap">
+	  	select 
+	 		 <include refid="columns"></include>
+	 	 from 
+	 	 <include refid="table"></include>
+	 	 where equipment_type_id = #{equipmentTypeId} 
+	 	  order by port_id desc
+  </select>
+
+  <insert id="insert">
+	  	 insert into <include refid="table"></include> (
+	  	 	<include refid="columns"></include>
+	  	 )
+		  values (#{equipmentTypeId},#{portId},#{portName},#{portCode},#{focus1},#{focus2},#{focus3})
+  </insert>
+	
+  <update id="update">
+	  update <include refid="table"></include> set
+	    port_name = #{portName},
+	    port_code = #{portCode},
+	    focus1 = #{focus1},
+	    focus2 = #{focus2},
+	    focus3 = #{focus3},
+	    equipment_type_id = #{equipmentTypeId}
+	  where port_id=#{portId}
+  </update>
+	
+  <delete id="delete">
+	  delete from <include refid="table"></include> 
+	  	where  port_id=#{portId}
+  </delete>
+  
+   <delete id="deletes">
+	  delete from <include refid="table"></include> 
+	  where   port_id in
+	   <foreach collection="array" index="columnIndex" item="id" open="(" close=")" separator=",">
+	      		${id} 
+	   </foreach>
+	 
+  </delete>
+  
+  
+   <select id="selectByConditions" resultMap="equipmentTypeAttrResultMap" parameterType="map">
+   		select <include refid="columns"></include>
+   		 from (
+	  		select  <include refid="columns"></include>
+			  	<if test="sortColumns!=null">
+		       		,ROW_NUMBER() OVER( 
+		       		order by
+			      <foreach collection="sortColumns" index="columnIndex" item="column" separator=",">
+			      		${column} ${sortFlag} 
+			      </foreach>
+		      		) ROW_ID
+		      </if>
+	  	
+	  	 from <include refid="table"></include> T 
+		  	<where>  
+		  		equipment_type_id = #{object.equipmentTypeId}    
+		        <if test="object.portName!=null">     
+		           and	T.port_name like CONCAT('%','${object.portName}','%')      
+		        </if>     
+	      </where> 
+     	 ) T 
+      <where>     
+	        <if test="start!=null and end!=null"> 
+	       	  <![CDATA[  ROW_ID >${start} and ROW_ID <=${end}]]>      
+	        </if>  
+      </where> 
+ 
+  </select>
+  
+</mapper>

@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.cesecsh.service.EquipmentService" >
+  
+  
+  
+  <resultMap id="equipmentResultMap" type="com.cesecsh.model.Equipment" >
+    <id column="equipment_id" property="equipmentId" jdbcType="VARCHAR" />
+    <result column="equipment_name" property="equipmentName" jdbcType="VARCHAR" />
+    <result column="region_id" property="regionId" jdbcType="VARCHAR" />
+    <result column="equipment_code" property="equipmentCode" jdbcType="VARCHAR" />
+ 	<result column="equipment_address" property="equipmentAddress" jdbcType="VARCHAR" />
+ 	<!-- 注意，association需要放在resultMap标签最后面 -->
+ 	<association column="equipment_type_id" property="equipmentType"  javaType="com.cesecsh.model.EquipmentType">
+ 		<id column="equipment_type_id" property="equipmentTypeId" jdbcType="VARCHAR" />
+   		 <result column="equipment_type_name" property="equipmentTypeName" jdbcType="VARCHAR" />
+    	<result column="equipment_type_code" property="equipmentTypeCode" jdbcType="VARCHAR" />
+    </association>
+  </resultMap>
+  
+  
+  <select id="select" resultMap="equipmentResultMap">
+  	select * from cec_equipment a left join  cec_equipment_type b 
+  	on	 a.equipment_type_id=b.equipment_type_id
+   <where>
+	 	 	<if test="_parameter!=null">
+	 	 	 and	equipment_id = #{_parameter}
+	 	 	</if>
+	</where>
+	order by equipment_id desc
+  </select>
+   <sql id="table" >
+  		cec_equipment 
+   </sql>
+  <sql id="table2" >
+  		cec_equipment_type 
+   </sql>
+  
+  <select id="selects" resultMap="equipmentResultMap">
+	  	select * from cec_equipment a, cec_equipment_type b 
+   	<where>
+  			 a.equipment_type_id=b.equipment_type_id
+	</where>
+	order by equipment_id desc
+  </select>
+
+  <insert id="insert">
+	  	 insert into <include refid="table"></include> (
+	  	 	equipment_id,equipment_name,equipment_type_id,region_id,equipment_code,equipment_address
+	  	 )
+		  values (#{equipmentId},#{equipmentName},#{equipmentType.equipmentTypeId},#{regionId},#{equipmentCode},#{equipmentAddress})
+  </insert>
+	
+  <update id="update">
+	  update <include refid="table"></include> set
+	    equipment_name = #{equipmentName},
+	    equipment_type_id = #{equipmentType.equipmentTypeId},
+	    region_id = #{regionId},
+	    equipment_code = #{equipmentCode},
+	    equipment_address = #{equipmentAddress}
+	  where equipment_id = #{equipmentId}
+  </update>
+	
+  <delete id="delete">
+	  delete from <include refid="table"></include> where equipment_id = #{equipmentId}
+  </delete>
+  
+   <delete id="deletes">
+	  delete from <include refid="table"></include> where equipment_id in
+	   <foreach collection="array" index="columnIndex" item="id" open="(" close=")" separator=",">
+	      		${id} 
+	   </foreach>
+	 
+  </delete>
+  
+  
+    <select id="selectByConditions" resultMap="equipmentResultMap" parameterType="map">
+   		select *
+   		 from (
+	  		select  T1.equipment_id,T1.equipment_name,T1.equipment_type_id,T1.equipment_code,T1.equipment_address,T2.equipment_type_name,T2.equipment_type_code
+			  	<if test="sortColumns!=null">,ROW_NUMBER() OVER( 
+		       		order by
+			      <foreach collection="sortColumns" index="columnIndex" item="column" separator=",">
+			      		${column}  ${sortFlag} 
+			      </foreach>) ROW_ID
+		      </if>
+	  	 from <include refid="table"></include> T1 
+	  	 		LEFT JOIN  
+	  	 	  <include refid="table2"></include> T2
+	  	 	  ON T1.equipment_type_id = T2.equipment_type_id 
+		  	<where>     
+		  		<if test="object.equipmentType.equipmentTypeId!=null">     
+		           	T1.equipment_type_id ='${object.equipmentType.equipmentTypeId}'    
+		        </if>  
+		        <if test="object.equipmentName!=null">     
+		           and T1.equipment_name like CONCAT('%','${object.equipmentName}','%')      
+		        </if>     
+		        <if test="object.equipmentCode!=null">     
+		           and T1.equipment_code like CONCAT('%','${object.equipmentCode}','%')      
+		        </if> 
+		        <if test="object.equipmentAddress!=null">     
+		           and T1.equipment_address like CONCAT('%', '${object.equipmentAddress}','%')       
+		        </if> 
+	      </where> 
+     	 ) T 
+      <where>     
+	        <if test="start!=null and end!=null"> 
+	       	  <![CDATA[  T.ROW_ID >${start} and T.ROW_ID <=${end}]]>      
+	        </if>  
+      </where> 
+ 
+  </select>
+  
+</mapper>

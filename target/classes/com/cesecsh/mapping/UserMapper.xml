@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.cesecsh.service.UserService" >
+  
+  <resultMap id="userResultMap" type="com.cesecsh.model.User" >
+    <id column="id" property="id" jdbcType="INTEGER" />
+    <result column="user_name" property="username" jdbcType="VARCHAR" />
+    <result column="password" property="password" jdbcType="VARCHAR" />
+   
+  </resultMap>
+ 
+  <sql id="userColumns" >
+    id, user_name, password
+  </sql>
+
+   <select id="selectUser" resultMap="userResultMap">
+	  	select 
+	 		 <include refid="userColumns"></include>
+	 	 from USER_TEST
+	 	 where id = #{id} order by id desc
+  </select>
+  
+  <select id="selectUsers" resultMap="userResultMap">
+	  	select 
+	 		 <include refid="userColumns"></include>
+	 	 from USER_TEST order by id desc
+  </select>
+
+  <insert id="insertUser">
+	  	 insert into USER_TEST (id,user_name,password)
+		  values (#{id},#{username},#{password})
+  </insert>
+	
+  <update id="updateUser">
+	  update USER_TEST set
+	    user_name = #{username},
+	    password = #{password}
+	  where id = #{id}
+  </update>
+	
+  <delete id="deleteUser">
+	  delete from USER_TEST where id = #{id}
+  </delete>
+  
+   <delete id="deleteUsers">
+	  delete from USER_TEST where id in
+	   <foreach collection="array" index="columnIndex" item="id" open="(" close=")" separator=",">
+	      		${id} 
+	   </foreach>
+	 
+  </delete>
+  
+  
+   <select id="selectUserByConditions" resultMap="userResultMap" parameterType="map">
+   		select <include refid="userColumns"></include>
+   		 from (
+	  		select  <include refid="userColumns"></include>
+			  	<if test="sortColumns!=null">
+		       		,ROW_NUMBER() OVER( 
+		       		order by
+			      <foreach collection="sortColumns" index="columnIndex" item="column" separator=",">
+			      		${column} ${sortFlag} 
+			      </foreach>
+		      		) ROW_ID
+		      </if>
+	  	
+	  	 from USER_TEST T 
+		  	<where>     
+		        <if test="object.username!=null">     
+		           	T.user_name like CONCAT('%','${object.username}','%')      
+		        </if>     
+		        <if test="object.password!=null">     
+		           and T.password like CONCAT('%', '${object.password}','%')       
+		        </if> 
+	      </where> 
+     	 ) T 
+      <where>     
+	        <if test="start!=null and end!=null"> 
+	       	  <![CDATA[  ROW_ID >${start} and ROW_ID <=${end}]]>      
+	        </if>  
+      </where> 
+ 
+  </select>
+  
+</mapper>

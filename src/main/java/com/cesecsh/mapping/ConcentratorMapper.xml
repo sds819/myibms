@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.cesecsh.service.ConcentratorService" >
+  
+  
+  
+  <resultMap id="concentratorResultMap" type="com.cesecsh.model.Concentrator" >
+    <id column="con_id" property="conId" jdbcType="VARCHAR" />
+    <result column="con_name" property="conName" jdbcType="VARCHAR" />
+    <result column="con_code" property="conCode" jdbcType="VARCHAR" />
+    <result column="con_ip" property="conIp" jdbcType="VARCHAR" />
+    <result column="con_path" property="conPath" jdbcType="VARCHAR" />
+
+ 	<!-- 注意，association需要放在resultMap标签最后面 -->
+ 	<association column="con_type_id" property="concentratorType"  javaType="com.cesecsh.model.ConcentratorType">
+ 		<id column="con_type_id" property="conTypeId" jdbcType="VARCHAR" />
+  	    <result column="con_type_name" property="conTypeName" jdbcType="VARCHAR" />
+   	    <result column="con_param" property="conParam" jdbcType="VARCHAR" />
+    </association>
+  </resultMap>
+  
+  
+  <select id="select" resultMap="concentratorResultMap">
+ 	 select * from cec_concentrator a left join cec_concentrator_type b on a.con_type_id = b.con_type_id
+   <where>
+	 	 	<if test="_parameter!=null">
+	 	 	 and	con_id = #{_parameter}
+	 	 	</if>
+	</where>
+	order by con_id desc
+  </select>
+   <sql id="table" >
+  		cec_concentrator 
+   </sql>
+  <sql id="table2" >
+  		cec_concentrator_type 
+   </sql>
+  
+  <select id="selects" resultMap="concentratorResultMap">
+	  	select * from cec_concentrator a, cec_concentrator_type b 
+   	<where>
+  			 a.con_type_id=b.con_type_id
+	</where>
+	order by con_id desc
+  </select>
+
+  <insert id="insert">
+	  	 insert into <include refid="table"></include> 
+	  	 (
+	  	 	con_id,con_name,con_type_id,con_code,con_ip,con_path
+	  	 )
+		  values (#{conId},#{conName},#{concentratorType.conTypeId},#{conCode},#{conIp},#{conPath})
+  </insert>
+	
+  <update id="update">
+	  update <include refid="table"></include> set
+	    con_name = #{conName},
+	    con_type_id = #{concentratorType.conTypeId},
+	    con_code = #{conCode},
+	    con_ip = #{conIp},
+	    con_path = #{conPath}
+	  where con_id = #{conId}
+  </update>
+	
+  <delete id="delete">
+	  delete from <include refid="table"></include> where con_id = #{conId}
+  </delete>
+  
+   <delete id="deletes">
+	  delete from <include refid="table"></include> where con_id in
+	   <foreach collection="array" index="columnIndex" item="id" open="(" close=")" separator=",">
+	      		${id} 
+	   </foreach>
+	 
+  </delete>
+  
+  
+    <select id="selectByConditions" resultMap="concentratorResultMap" parameterType="map">
+   		select *
+   		 from (
+	  		SELECT T1.CON_ID,T1.CON_NAME,T1.CON_TYPE_ID,T1.CON_CODE,T1.CON_IP,T1.CON_PATH,T2.CON_TYPE_NAME,T2.CON_PARAM 
+			  	<if test="sortColumns!=null">,ROW_NUMBER() OVER( 
+		       		order by
+			      <foreach collection="sortColumns" index="columnIndex" item="column" separator=",">
+			      		${column}  ${sortFlag} 
+			      </foreach>) ROW_ID
+		      </if>
+	  	 from <include refid="table"></include> T1 
+	  	 		LEFT JOIN  
+	  	 	  <include refid="table2"></include> T2
+	  	 	  ON T1.con_type_id = T2.con_type_id 
+		  	<where>     
+		  		<if test="object.concentratorType.conTypeId!=null">     
+		           	T1.con_type_id ='${object.concentratorType.conTypeId}'    
+		        </if>  
+		        <if test="object.conName!=null">     
+		           and T1.con_name like CONCAT('%','${object.conName}','%')      
+		        </if>     
+		        <if test="object.conCode!=null">     
+		           and T1.con_code like CONCAT('%','${object.conCode}','%')      
+		        </if> 
+		       
+	      </where> 
+     	 ) T 
+      <where>     
+	        <if test="start!=null and end!=null"> 
+	       	  <![CDATA[  T.ROW_ID >${start} and T.ROW_ID <=${end}]]>      
+	        </if>  
+      </where> 
+ 
+  </select>
+  
+</mapper>

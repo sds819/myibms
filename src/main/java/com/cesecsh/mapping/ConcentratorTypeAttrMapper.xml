@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.cesecsh.service.ConcentratorTypeAttrService" >
+  
+
+  <resultMap id="concentratorTypeAttrResultMap" type="com.cesecsh.model.ConcentratorTypeAttr" >
+    <id column="port_id" property="portId" jdbcType="VARCHAR" />
+    <result column="con_type_id" property="conTypeId" jdbcType="VARCHAR" />
+    <result column="port_name" property="portName" jdbcType="VARCHAR" />
+    <result column="port_code" property="portCode" jdbcType="VARCHAR" />
+  </resultMap>
+  
+  <sql id="columns" >
+   port_id,port_name,port_code,con_type_id
+  </sql>
+  <select id="select" resultMap="concentratorTypeAttrResultMap">
+  	select * from cec_concentrator_type_attr 
+   <where>
+	 	 	<if test="conTypeId!=null">
+	 	 	 and	con_type_id = #{conTypeId}
+	 	 	</if>
+	 	 	<if test="portId!=null">
+	 	 	 and	port_id = #{portId}
+	 	 	</if>
+	</where>
+	order by port_id desc
+  </select>
+   <sql id="table" >
+  		cec_concentrator_type_attr 
+   </sql>
+  
+  <select id="selects" resultMap="concentratorTypeAttrResultMap">
+	  	select * from cec_concentrator_type_attr 
+	  	<where>
+	 	 	<if test="_parameter!=null">
+	 	 	 and	con_type_id = #{_parameter}
+	 	 	</if>
+		</where> 
+		order by port_id desc
+  </select>
+
+  <insert id="insert">
+	  	 insert into <include refid="table"></include> (
+	  	 	port_id,port_name,port_code,con_type_id
+	  	 )
+		  values (#{portId},#{portName},#{portCode},#{conTypeId})
+  </insert>
+	
+  <update id="update">
+	  update <include refid="table"></include> 
+	  set
+	    port_name = #{portName},
+	    port_code = #{portCode},
+	    con_type_id = #{conTypeId}
+	  where 
+	  	port_id = #{portId}
+  </update>
+	
+  <delete id="delete">
+	  delete from <include refid="table"></include> where port_id = #{portId}
+  </delete>
+  
+   <delete id="deletes">
+	  delete from <include refid="table"></include> where port_id in
+	   <foreach collection="array" index="columnIndex" item="id" open="(" close=")" separator=",">
+	      		${id} 
+	   </foreach>
+	 
+  </delete>
+  
+  
+   <select id="selectByConditions" resultMap="concentratorTypeAttrResultMap" parameterType="map">
+   		select <include refid="columns"></include>
+   		 from (
+	  		select  <include refid="columns"></include>
+			  	<if test="sortColumns!=null">
+		       		,ROW_NUMBER() OVER( 
+		       		order by
+			      <foreach collection="sortColumns" index="columnIndex" item="column" separator=",">
+			      		${column} ${sortFlag} 
+			      </foreach>
+		      		) ROW_ID
+		      </if>
+	  	
+	  	 from <include refid="table"></include> T 
+		  	<where>  
+		  		con_type_id = #{object.conTypeId}    
+		        <if test="object.portName!=null">     
+		           and	T.port_name like CONCAT('%','${object.portName}','%')      
+		        </if>     
+	      </where> 
+     	 ) T 
+      <where>     
+	        <if test="start!=null and end!=null"> 
+	       	  <![CDATA[  ROW_ID >${start} and ROW_ID <=${end}]]>      
+	        </if>  
+      </where> 
+ 
+  </select>
+  
+</mapper>

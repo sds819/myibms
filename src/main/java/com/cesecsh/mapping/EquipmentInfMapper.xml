@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.cesecsh.service.EquipmentInfService" >
+  
+  
+  
+  <resultMap id="equipmentInfResultMap" type="com.cesecsh.model.EquipmentInf" >
+    <id column="equipment_inf_id" property="equipmentInfId" jdbcType="VARCHAR" />
+    <result column="equipment_inf_name" property="equipmentInfName" jdbcType="VARCHAR" />
+    <result column="unit" property="unit" jdbcType="VARCHAR" />
+    <result column="prec" property="prec" jdbcType="VARCHAR" />
+    <result column="up_limit" property="upLimit" jdbcType="VARCHAR" />
+    <result column="low_limit" property="lowLimit" jdbcType="VARCHAR" />
+    <result column="update_time" property="updateTime" jdbcType="VARCHAR" />
+    <result column="equipment_part_id" property="equipmentPartId" jdbcType="VARCHAR" />
+    <result column="equipment_id" property="equipmentId" jdbcType="VARCHAR" />
+    <result column="equipment_inf_type_id" property="equipmentInfTypeId" jdbcType="VARCHAR" />
+    <result column="inf_code" property="infCode" jdbcType="VARCHAR" />
+	<!-- 注意，association需要放在resultMap标签最后面 -->
+ 	<association column="con_id" property="concentrator"  javaType="com.cesecsh.model.Concentrator">
+ 		 <id column="con_id" property="conId" jdbcType="VARCHAR" />
+		    <result column="con_name" property="conName" jdbcType="VARCHAR" />
+		    <result column="con_code" property="conCode" jdbcType="VARCHAR" />
+		    <result column="con_ip" property="conIp" jdbcType="VARCHAR" />
+		    <result column="con_path" property="conPath" jdbcType="VARCHAR" />
+    </association>
+    <association column="port_id" property="concentratorTypeAttr"  javaType="com.cesecsh.model.ConcentratorTypeAttr">
+ 		 <id column="port_id_cta" property="portId" jdbcType="VARCHAR" />
+		    <result column="port_name_cta" property="portName" jdbcType="VARCHAR" />
+		    <result column="port_code_cta" property="portCode" jdbcType="VARCHAR" />
+		    <result column="con_type_ip" property="conTypeId" jdbcType="VARCHAR" />
+    </association>
+ 	<association column="equipment_inf_type" property="equipmentInfType"  javaType="com.cesecsh.model.EquipmentInfType">
+ 		<id column="type_value" property="typeValue" jdbcType="VARCHAR" />
+ 		<result column="equipment_inf_type_id" property="equipmentInfTypeId" jdbcType="VARCHAR" />
+  	    <result column="code_eit" property="code" jdbcType="VARCHAR" />
+   	    <result column="state" property="state" jdbcType="VARCHAR" />
+    </association>
+    <association column="value_type" property="valueType"  javaType="com.cesecsh.model.ValueType">
+        <id column="code_vt" property="code" jdbcType="VARCHAR" />
+ 		<result column="id" property="id" jdbcType="VARCHAR" />
+  	    <result column="name" property="name" jdbcType="VARCHAR" />
+  	
+    </association>
+    
+    <association column="equipment_port_id" property="equipmentTypeAttr"  javaType="com.cesecsh.model.EquipmentTypeAttr">
+ 		 	<id column="port_id_eta" property="portId" jdbcType="VARCHAR" />
+ 		 	<result column="equipment_type_id" property="equipmentTypeId" jdbcType="VARCHAR" />
+		    <result column="port_name_eta" property="portName" jdbcType="VARCHAR" />
+		    <result column="port_code_eta" property="portCode" jdbcType="VARCHAR" />
+		    <result column="focus1" property="focus1" jdbcType="VARCHAR" />
+		    <result column="focus2" property="focus2" jdbcType="VARCHAR" />
+		    <result column="focus3" property="focus3" jdbcType="VARCHAR" />
+    </association>
+    
+  </resultMap>
+
+  <select id="select" resultMap="equipmentInfResultMap">
+  	select a.equipment_inf_id,a.equipment_inf_name,g.port_name port_name_eta,a.equipment_inf_type,a.value_type, 
+		a.UNIT,a.PREC,a.UP_LIMIT,a.LOW_LIMIT,a.UPDATE_TIME,a.CON_ID,b.CON_NAME,a.PORT_ID,
+		c.PORT_NAME port_name_cta,a.INF_CODE,d.STATE,f.NAME,d.CODE code_eit,a.equipment_port_id   
+    from CEC_EQUIPMENT_INF a left join CEC_CONCENTRATOR  B on a.CON_ID=b.CON_ID 
+		left join CEC_CONCENTRATOR_TYPE_ATTR c on a.PORT_ID = c.PORT_ID 
+		left join CEC_EQUIPMENT_INF_TYPE d on a.EQUIPMENT_INF_TYPE=d.TYPE_VALUE
+		left join CEC_VALUE_TYPE f on f.code=a.value_type 
+		left join CEC_EQUIPMENT_TYPE_ATTR g on g.port_id=a.equipment_port_id 
+   <where>
+	 	 	<if test="equipmentInfId!=null">
+	 	 	 and	equipment_inf_id = #{equipmentInfId}
+	 	 	</if>
+	</where>
+	order by equipment_inf_id desc
+  </select>
+   <sql id="table" >
+  		cec_equipment_inf 
+   </sql>
+  
+  <select id="selects" resultMap="equipmentInfResultMap">
+	select a.equipment_inf_id,a.equipment_inf_name,g.port_name port_name_eta,a.equipment_inf_type,a.value_type, 
+		a.UNIT,a.PREC,a.UP_LIMIT,a.LOW_LIMIT,a.UPDATE_TIME,a.CON_ID,b.CON_NAME,a.PORT_ID,
+		c.PORT_NAME port_name_cta,a.INF_CODE,d.STATE,f.NAME,d.CODE code_eit,a.equipment_port_id   
+    from CEC_EQUIPMENT_INF a left join CEC_CONCENTRATOR  B on a.CON_ID=b.CON_ID 
+		left join CEC_CONCENTRATOR_TYPE_ATTR c on a.PORT_ID = c.PORT_ID 
+		left join CEC_EQUIPMENT_INF_TYPE d on a.EQUIPMENT_INF_TYPE=d.TYPE_VALUE
+		left join CEC_VALUE_TYPE f on f.code=a.value_type 
+		left join CEC_EQUIPMENT_TYPE_ATTR g on g.port_id=a.equipment_port_id 
+   	<where>
+	 	 	<if test="_parameter!=null">
+	 	 	 and	equipment_id = #{_parameter}
+	 	 	</if>
+	</where>
+	order by equipment_inf_id desc
+  </select>
+
+  <insert id="insert">
+
+	  	 insert into <include refid="table"></include> (
+	  	 	equipment_inf_id,equipment_inf_name,unit,prec,up_limit,low_limit,
+	  	 	update_time,equipment_part_id,equipment_id,equipment_inf_type_id,inf_code,con_id,
+	  	 	port_id,equipment_inf_type,value_type,equipment_port_id
+	  	 )
+		  values (#{equipmentInfId},#{equipmentInfName},#{unit},#{prec},#{upLimit},#{lowLimit},
+		  		#{updateTime},#{equipmentPartId},#{equipmentId},#{equipmentInfTypeId},#{infCode},#{concentrator.conId},
+		  		#{concentratorTypeAttr.portId},#{equipmentInfType.typeValue},#{valueType.code},#{equipmentTypeAttr.portId})
+  </insert>
+	
+  <update id="update">
+	  update <include refid="table"></include> 
+	  set
+	    equipment_inf_name = #{equipmentInfName},unit = #{unit},prec = #{prec},up_limit = #{upLimit},low_limit = #{lowLimit},
+	    update_time = #{updateTime},equipment_part_id = #{equipmentPartId},equipment_id = #{equipmentId},
+	    equipment_inf_type_id = #{equipmentInfTypeId}, inf_code = #{infCode},con_id = #{concentrator.conId},
+	    port_id = #{concentratorTypeAttr.portId},equipment_inf_type = #{equipmentInfType.typeValue},
+	    value_type = #{valueType.code},equipment_port_id = #{equipmentTypeAttr.portId}
+	  where equipment_inf_id = #{equipmentInfId}
+  </update>
+	
+  <delete id="delete">
+	  delete from <include refid="table"></include> where equipment_inf_id = #{equipmentInfId}
+  </delete>
+  
+   <delete id="deletes">
+	  delete from <include refid="table"></include> where equipment_inf_id in
+	   <foreach collection="array" index="columnIndex" item="id" open="(" close=")" separator=",">
+	      		#{id} 
+	   </foreach>
+	 
+  </delete>
+  
+  
+    <select id="selectByConditions" resultMap="equipmentInfResultMap" parameterType="map">
+   		select * from (
+   		 	select a.equipment_inf_id,a.equipment_inf_name,g.port_name port_name_eta,a.equipment_inf_type,a.value_type, 
+			a.UNIT,a.PREC,a.UP_LIMIT,a.LOW_LIMIT,a.UPDATE_TIME,a.CON_ID,b.CON_NAME,a.PORT_ID,
+			c.PORT_NAME port_name_cta,a.INF_CODE,d.STATE,f.NAME,d.CODE code_eit,a.equipment_port_id 
+				<if test="sortColumns!=null">,ROW_NUMBER() OVER( 
+		       		order by
+			     	 <foreach collection="sortColumns" index="columnIndex" item="column" separator=",">
+			      		${column}  ${sortFlag} 
+			      	</foreach>) ROW_ID
+		      	</if>  
+    	from CEC_EQUIPMENT_INF a left join CEC_CONCENTRATOR  B on a.CON_ID=b.CON_ID 
+			left join CEC_CONCENTRATOR_TYPE_ATTR c on a.PORT_ID = c.PORT_ID 
+			left join CEC_EQUIPMENT_INF_TYPE d on a.EQUIPMENT_INF_TYPE=d.TYPE_VALUE
+			left join CEC_VALUE_TYPE f on f.code=a.value_type 
+			left join CEC_EQUIPMENT_TYPE_ATTR g on g.port_id=a.equipment_port_id 
+			
+		  	<where>  
+		  		<if test="object.equipmentId!=null">     
+		          and 	a.equipment_id ='${object.equipmentId}'    
+		        </if>     
+		  		<if test="object.equipmentTypeAttr.portName!=null">     
+		           and 	g.port_name ='${object.equipmentTypeAttr.portName}'    
+		        </if>  
+		        <if test="object.equipmentInfName!=null">     
+		           and a.equipment_inf_name like CONCAT('%','${object.equipmentInfName}','%')      
+		        </if>     
+		       
+	      </where> 
+     	 ) T 
+      <where>     
+	        <if test="start!=null and end!=null"> 
+	       	  <![CDATA[  T.ROW_ID >${start} and T.ROW_ID <=${end}]]>      
+	        </if>  
+      </where> 
+ 
+  </select>
+  
+</mapper>
